@@ -15,8 +15,11 @@ def run_clustering(b):
             return
         
         # Save the uploaded file locally (Binder runs in a temporary directory)
-        uploaded_filename = list(file_uploader.value.keys())[0]
-        file_data = file_uploader.value[uploaded_filename]['content']
+        # Access the first uploaded file (assuming multiple=False)
+        uploaded_file = file_uploader.value[0]
+        uploaded_filename = uploaded_file['name']
+        file_data = uploaded_file['content']
+        
         temp_dir = "temp"
         os.makedirs(temp_dir, exist_ok=True)
         input_filepath = os.path.join(temp_dir, uploaded_filename)
