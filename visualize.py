@@ -2,28 +2,30 @@ import pandas as pd
 import folium
 from geopy.geocoders import Nominatim
 import os
-
+import sys
 
 def load_summary(summary_file):
     """Load the cluster summary CSV file."""
     if not os.path.exists(summary_file):
         raise FileNotFoundError(f"Summary file '{summary_file}' not found.")
 
-    print("Progress: 10% - Loading cluster summary data...")
+    sys.stdout.write("\rProgress: 0.10 - Loading cluster summary data...")
+    sys.stdout.flush()
     return pd.read_csv(summary_file)
-
 
 def create_cluster_map(summary_data, radius_miles, output_file):
     """Generate a map with cluster visualizations."""
-    print("Progress: 20% - Initializing the map...")
+    sys.stdout.write("\rProgress: 0.20 - Initializing the map...")
+    sys.stdout.flush()
     map_center = [39.8283, -98.5795]  # Center of the USA
     cluster_map = folium.Map(location=map_center, zoom_start=5)
 
     geolocator = Nominatim(user_agent="cluster_visualizer")
     total_clusters = len(summary_data)
 
-    if total_clusters == 0:  # Handle the case where there are no clusters
-        print("Progress: 1.0")
+    if total_clusters == 0:
+        sys.stdout.write("\rProgress: 1.0\n")
+        sys.stdout.flush()
         return
 
     def get_marker_color(num_zip_codes):
@@ -48,7 +50,6 @@ def create_cluster_map(summary_data, radius_miles, output_file):
         except Exception:
             location_name = "Unknown Location"
 
-        # Add a proportional radius to match input radius
         popup_text = (
             f"<div style='width: 250px; font-size: 14px;'>"
             f"<b>Cluster {cluster_id}</b><br>"
@@ -68,9 +69,9 @@ def create_cluster_map(summary_data, radius_miles, output_file):
             fill_opacity=0.6
         ).add_to(cluster_map)
 
-        # Progress output
         progress = (i + 1) / total_clusters
-        print(f"Progress: {progress:.2f}")
+        sys.stdout.write(f"\rProgress: {progress:.2f}")
+        sys.stdout.flush()
 
     # Add a legend to the map
     legend_html = f'''
@@ -93,8 +94,8 @@ def create_cluster_map(summary_data, radius_miles, output_file):
 
     # Save the map to an HTML file
     cluster_map.save(output_file)
-    print(f"Progress: 1.0")
-
+    sys.stdout.write("\rProgress: 1.0\n")
+    sys.stdout.flush()
 
 def calculate_metrics(summary_data):
     """Calculate and display key metrics."""
@@ -106,17 +107,10 @@ def calculate_metrics(summary_data):
     print(f"Largest Cluster: Cluster {largest_cluster['Cluster']} with {largest_cluster['Number of ZIP Codes']} Customers")
     print(f"Smallest Cluster: Cluster {smallest_cluster['Cluster']} with {smallest_cluster['Number of ZIP Codes']} Customers")
 
-
 def main(summary_file, radius_miles, output_file):
-    # Load the cluster summary data
     summary_data = load_summary(summary_file)
-
-    # Generate the map
     create_cluster_map(summary_data, radius_miles, output_file)
-
-    # Display key metrics
     calculate_metrics(summary_data)
-
 
 if __name__ == "__main__":
     import sys
